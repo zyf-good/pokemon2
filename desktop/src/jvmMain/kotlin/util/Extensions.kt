@@ -1,4 +1,4 @@
-package com.zyf.pokemon.utils
+package util
 
 fun String.extractId() = this.substringAfter("pokemon").replace("/", "").toInt()
 

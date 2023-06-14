@@ -5,22 +5,18 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.FloatingActionButton
-import androidx.compose.material.Icon
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusTarget
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.zyf.pokemon.utils.NetworkResource
-import com.zyf.pokemon.utils.getPicUrl
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import model.PokemonResult
@@ -33,6 +29,8 @@ import ui.common.CommonCircularProgress
 import ui.common.CommonLinearProgressIndicator
 import ui.common.toast.ToastManager.showToast
 import util.MAX_BASE_STATE
+import util.NetworkResource
+import util.getPicUrl
 import viewmodel.PokemonListViewModel
 import java.util.*
 
@@ -47,45 +45,64 @@ fun FullScreenView(){
 
     val scope = rememberCoroutineScope()
 
-    var page by remember { mutableStateOf(0) }
+    var page by remember { mutableStateOf(1) }
 
-    LaunchedEffect(page) {
-        snapshotFlow{page}
-            .distinctUntilChanged()
-            .collect{
-                viewModel.getPokemon("",page)
-            }
+    var searchString by rememberSaveable {
+        mutableStateOf("")
+    }
+
+    LaunchedEffect(page,searchString) {
+        viewModel.getPokemon(searchString,page)
     }
             Box (Modifier.fillMaxWidth()
                 .fillMaxHeight()
                 .padding(top = 10.dp)){
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(30.dp)
-                    ,
-                    state = state,
-                    contentPadding = PaddingValues(14.dp, 0.dp, 14.dp, 80.dp),
-                    verticalArrangement = Arrangement.spacedBy(40.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
 
-                    items(listState.size){
-                        ItemView(listState[it],viewModel)
-                    }
-                    item {
-                        Button(
-                            modifier = Modifier.fillMaxWidth()
-                                .padding(30.dp),
-                            onClick = {
-                                page+=1
-                            },
-                            shape = RoundedCornerShape(16.dp)
-                        ){
-                            Text("加载更多")
+                Column {
+                    OutlinedTextField(value = searchString, onValueChange = {
+                        searchString = it
+                    }, placeholder = { Text(text = "Search Pokemon", color = Color.Gray) },
+                        modifier = Modifier
+                        .height(100.dp)
+                        .fillMaxWidth()
+                        .padding(20.dp)
+                        .focusTarget()
+                        .background(
+                            Color.White, RoundedCornerShape(16.dp)
+                        ), singleLine = true, colors = LoginTextFieldColors()
+                    )
+
+
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(30.dp)
+                        ,
+                        state = state,
+                        contentPadding = PaddingValues(14.dp, 0.dp, 14.dp, 80.dp),
+                        verticalArrangement = Arrangement.spacedBy(40.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+
+                        items(listState.size){
+                            ItemView(listState[it],viewModel)
+                        }
+                        item {
+                            Button(
+                                modifier = Modifier.fillMaxWidth()
+                                    .padding(30.dp),
+                                onClick = {
+                                    page+=1
+                                },
+                                shape = RoundedCornerShape(16.dp)
+                            ){
+                                Text("加载更多")
+                            }
                         }
                     }
                 }
+
+
 
                 FloatingActionButton(
                     onClick = {
@@ -241,3 +258,16 @@ fun AttributeDetailItemView(stat: Stats, modifier: Modifier) {
 
 }
 
+
+@Composable
+private fun LoginTextFieldColors(): TextFieldColors {
+    return TextFieldDefaults.outlinedTextFieldColors(
+        placeholderColor = Color.Black,
+        focusedLabelColor = Color.Black,
+        unfocusedLabelColor = Color.Black,
+        unfocusedBorderColor = Color.Black,
+        focusedBorderColor = Color.Black,
+        textColor = Color.Black,
+        cursorColor = Color.Black,
+    )
+}

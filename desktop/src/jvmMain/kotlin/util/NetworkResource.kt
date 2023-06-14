@@ -1,4 +1,4 @@
-package com.zyf.pokemon.utils
+package util
 
 import okhttp3.ResponseBody
 

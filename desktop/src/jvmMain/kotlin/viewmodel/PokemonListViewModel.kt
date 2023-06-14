@@ -1,7 +1,7 @@
 package viewmodel
 
-import com.zyf.pokemon.utils.NetworkResource
-import com.zyf.pokemon.utils.extractId
+import util.NetworkResource
+import util.extractId
 import http.PKRetrofitClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +25,7 @@ class PokemonListViewModel : ViewModel(){
     var page = 0
 
     var limit = 20
-    fun getPokemon(searchString: String?,page: Int) {
+    fun getPokemon(searchString: String,page: Int) {
         viewModelScope.launch {
             if (page == 0){
                 limit = 20
@@ -33,7 +33,7 @@ class PokemonListViewModel : ViewModel(){
                 limit *= page
             }
             val data = PKRetrofitClient.getPokemonApi().getPokemons(limit,0)
-            val filteredData = if (searchString != null) {
+            val filteredData = if (searchString.isNotEmpty()) {
                 data.results.filter { it.name.contains(searchString, true) }
             } else {
                 data.results
